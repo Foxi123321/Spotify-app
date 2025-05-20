@@ -3,9 +3,7 @@ name: Build Android APK
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
-      - master
+    branches: [ main, master ]
   pull_request:
 
 jobs:
@@ -30,16 +28,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install buildozer cython python-for-android
 
-      - name: Verify Python modules
+      - name: Install system dependencies
         run: |
-          python -m pip show buildozer
-          python -m pip show python-for-android
-
-      - name: Ensure universe repo and install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y software-properties-common
-          sudo add-apt-repository universe
           sudo apt-get update
           sudo apt-get install -y \
             openjdk-17-jdk \
@@ -51,9 +41,8 @@ jobs:
             zip \
             ccache \
             libstdc++6 \
-            zlib1g-dev
-          sudo apt-get install -y libncurses5 || sudo apt-get install -y libncurses5-dev || true
-          dpkg -l | grep ncurses
+            zlib1g-dev \
+            libncurses5 || sudo apt-get install -y libncurses5-dev || true
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
@@ -68,8 +57,12 @@ jobs:
             "cmdline-tools;latest"
           sdkmanager --list
 
-      - name: Ensure Buildozer directories exist
-        run: mkdir -p .buildozer/android/platform/python-for-android
+      - name: Verify Aidl installation
+        run: |
+          if [ ! -f "$ANDROID_HOME/build-tools/34.0.0/aidl" ]; then
+            echo "Aidl not found, installation failed."
+            exit 1
+          fi
 
       - name: Clean previous builds
         run: buildozer android clean

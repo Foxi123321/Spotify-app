@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Android APK and Release
 
 on:
   push:
@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
@@ -33,7 +33,6 @@ jobs:
             git \
             libncurses5 \
             libncurses5-dev \
-            libffi-dev \
             liblzma-dev \
             libbz2-dev \
             pkg-config
@@ -41,19 +40,32 @@ jobs:
           pip3 install --upgrade pip
           pip3 install buildozer cython
 
-      - name: Initialize Buildozer Android SDK and NDK
+      - name: Build APK with Buildozer
         run: |
-          buildozer android clean
           buildozer android debug
 
-      - name: Debug APK path
+      - name: Find APK file
         run: ls -R bin/
 
-      - name: Upload APK
-        uses: actions/upload-artifact@9be8143db28c8f3cc80c6d79ccf72b13a4404e1a
-
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
         with:
-          name: SpotifyLikedPlaylist.apk
-          path: bin/*.apk
+          tag_name: 'v1.0.${{ github.run_number }}'
+          release_name: 'Build ${{ github.run_number }}'
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload APK to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./bin/*.apk
+          asset_name: SpotifyLikedPlaylist.apk
+          asset_content_type: application/vnd.android.package-archive
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 

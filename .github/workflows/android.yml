@@ -10,14 +10,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source code
+      - name: Checkout source
         uses: actions/checkout@v3
 
-      - name: Build APK inside Docker container
+      - name: Build APK using Buildozer in Docker
         run: |
           docker run --rm \
-            -u 0 \
-            -v "${{ github.workspace }}:/home/user/hostcwd" \
-            -w /home/user/hostcwd \
+            -v ${{ github.workspace }}:/home/user/app \
+            -w /home/user/app \
             ghcr.io/kivy/buildozer:latest \
-            python3 -m buildozer android debug
+            bash -c "pip install buildozer && buildozer android debug"

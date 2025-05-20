@@ -1,4 +1,4 @@
-name: Build Android APK and Release
+name: Build Android APK
 
 on:
   push:
@@ -7,70 +7,38 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v2
-        with:
-          api-level: 33
-          build-tools: 33.0.0
-          components: build-tools;33.0.0
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v2
+      with:
+        api-level: 33
+        build-tools: 33.0.0
+        components: |
+          platform-tools
+          build-tools;33.0.0
+          platform;android-33
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            openjdk-11-jdk \
-            python3-pip \
-            build-essential \
-            libssl-dev \
-            zlib1g-dev \
-            libffi-dev \
-            libsqlite3-dev \
-            curl \
-            git \
-            libncurses5-dev \
-            liblzma-dev \
-            libbz2-dev \
-            pkg-config \
-            unzip
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y openjdk-11-jdk python3-pip build-essential \
+          libssl-dev zlib1g-dev libffi-dev libsqlite3-dev curl git \
+          libncurses5-dev liblzma-dev libbz2-dev pkg-config unzip
+        pip3 install --upgrade pip
+        pip3 install buildozer cython
 
-          pip3 install --upgrade pip
-          pip3 install buildozer cython
+    - name: Build APK
+      run: buildozer android debug
 
-      - name: Build APK with Buildozer
-        run: |
-          buildozer android debug
-
-      - name: Find APK file
-        run: ls -R bin/
-
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        with:
-          tag_name: 'v1.0.${{ github.run_number }}'
-          release_name: 'Build ${{ github.run_number }}'
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload APK to Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./bin/*.apk
-          asset_name: SpotifyLikedPlaylist.apk
-          asset_content_type: application/vnd.android.package-archive
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: List APK(s)
+      run: ls -R bin/

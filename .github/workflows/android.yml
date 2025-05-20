@@ -14,7 +14,6 @@ jobs:
     timeout-minutes: 60
 
     env:
-      # Set JAVA_HOME for Android builds
       JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
 
     steps:
@@ -31,8 +30,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install buildozer cython
 
-      - name: Install system dependencies
+      - name: Ensure universe repo and install system dependencies
         run: |
+          sudo apt-get update
+          sudo apt-get install -y software-properties-common
+          sudo add-apt-repository universe
           sudo apt-get update
           sudo apt-get install -y \
             openjdk-17-jdk \
@@ -59,11 +61,6 @@ jobs:
             "build-tools;34.0.0" \
             "cmdline-tools;latest"
 
-      # Uncomment the following block if using Gradle (for pure Android/Kotlin/Java projects)
-      # - name: Build with Gradle
-      #   run: ./gradlew assembleDebug
-
-      # Uncomment and adjust the following block if using Buildozer (for Kivy/Python projects)
       - name: Clean previous builds
         run: buildozer android clean
 
@@ -84,5 +81,4 @@ jobs:
 
       - name: Post-job cleanup
         if: always()
-        run: |
-          echo "Cleanup complete."
+        run: echo "Cleanup complete."

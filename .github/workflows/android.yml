@@ -47,7 +47,8 @@ jobs:
           buildozer android debug
 
       - name: Upload APK
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@9be8143db28c8f3cc80c6d79ccf72b13a4404e1a
+
         with:
           name: SpotifyLikedPlaylist.apk
           path: bin/*.apk

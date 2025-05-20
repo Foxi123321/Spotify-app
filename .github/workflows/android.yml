@@ -23,6 +23,7 @@ jobs:
         with:
           api-level: 33
           build-tools: 33.0.0
+          components: build-tools;33.0.0
 
       - name: Install dependencies
         run: |

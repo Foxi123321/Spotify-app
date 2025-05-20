@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Build APK with Buildozer Docker container
+      - name: Build APK using Buildozer Docker container
         run: |
           docker run --rm \
             -u 0 \

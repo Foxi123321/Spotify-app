@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: Install dependencies and Android SDK
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -31,7 +31,6 @@ jobs:
             libsqlite3-dev \
             curl \
             git \
-            libncurses5 \
             libncurses5-dev \
             liblzma-dev \
             libbz2-dev \
@@ -41,14 +40,14 @@ jobs:
           pip3 install --upgrade pip
           pip3 install buildozer cython
 
-          # Download and set up Android SDK command-line tools
-          mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
-          cd $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
+          # Setup Android SDK command-line tools
+          export ANDROID_SDK_ROOT=$HOME/.buildozer/android/platform/android-sdk
+          mkdir -p $ANDROID_SDK_ROOT/cmdline-tools/latest
+          cd $ANDROID_SDK_ROOT/cmdline-tools/latest
           curl -o commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
           unzip commandlinetools.zip
-          mv cmdline-tools latest
-          export ANDROID_SDK_ROOT=$HOME/.buildozer/android/platform/android-sdk
-          export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
+          rm commandlinetools.zip
+          export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
 
           yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0"
@@ -56,7 +55,7 @@ jobs:
       - name: Build APK with Buildozer
         run: |
           export ANDROID_SDK_ROOT=$HOME/.buildozer/android/platform/android-sdk
-          export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
+          export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
           buildozer android debug
 
       - name: Find APK file

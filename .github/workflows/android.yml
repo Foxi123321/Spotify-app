@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Android Build
 
 on:
   push:
@@ -6,23 +6,24 @@ on:
       - main
 
 jobs:
-  build:
+  build-android:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Fix permissions
-        run: sudo chmod -R a+rw ${{ github.workspace }}
+      - name: Fix permissions for Docker user
+        run: sudo chown -R 1000:1000 ${{ github.workspace }}
 
-      - name: Build APK with Buildozer Docker (GHCR mirror)
+      - name: Build APK with Buildozer Docker
         run: |
           docker run --rm \
-            -u $(id -u):$(id -g) \
+            -u 1000:1000 \
             -v ${{ github.workspace }}:/home/buildozer/app \
             -w /home/buildozer/app \
             ghcr.io/kivy/buildozer \
             buildozer android debug
 
-      - name: List output files
-        run: ls -R bin/
+      - name: List generated APK
+        run: ls -l bin/

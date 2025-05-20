@@ -2,16 +2,18 @@ name: Build APK
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout source code
+        uses: actions/checkout@v3
 
-      - name: Run Buildozer in Docker
+      - name: Build APK inside Docker container
         run: |
           docker run --rm \
             -u 0 \

@@ -9,7 +9,6 @@ jobs:
   build:
     runs-on: ubuntu-22.04
 
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -48,8 +47,7 @@ jobs:
           buildozer android debug
 
       - name: Upload APK
-        uses: actions/upload-artifact@9be8143db28c8f3cc80c6d79ccf72b13a4404e1a
-
+        uses: actions/upload-artifact@v3
         with:
           name: SpotifyLikedPlaylist.apk
           path: bin/*.apk

@@ -20,9 +20,11 @@ jobs:
         run: |
           docker build -t buildozer-android .
 
+      - name: Fix workspace permissions
+        run: sudo chmod -R a+rw ${{ github.workspace }}
+
       - name: Run Docker container to build APK
-        run: |
-          docker run --rm -v ${{ github.workspace }}:/home/buildozer/app buildozer-android
+        run: docker run --rm -u 0 -v ${{ github.workspace }}:/home/buildozer/app buildozer-android
 
       - name: List APK files
         run: ls -R bin/

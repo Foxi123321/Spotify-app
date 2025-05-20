@@ -46,9 +46,13 @@ jobs:
           buildozer android clean
           buildozer android debug
 
+      - name: Debug APK path
+        run: ls -R bin/
+
       - name: Upload APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: SpotifyLikedPlaylist.apk
           path: bin/*.apk
+
 

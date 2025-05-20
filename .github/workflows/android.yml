@@ -13,15 +13,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Accept Android SDK licenses
+      - name: Install Android SDK and accept licenses
         run: |
-          docker run --rm \
-            -v "${{ github.workspace }}:/home/user/hostcwd" \
-            -w /home/user/hostcwd \
-            ghcr.io/kivy/buildozer:latest \
-            sdkmanager --licenses <<< y
+          sudo apt-get update
+          sudo apt-get install -y wget unzip openjdk-11-jdk
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+          mkdir -p $HOME/Android/cmdline-tools
+          unzip cmdline-tools.zip -d $HOME/Android/cmdline-tools
+          mv $HOME/Android/cmdline-tools/cmdline-tools $HOME/Android/cmdline-tools/latest
+          export PATH=$HOME/Android/cmdline-tools/latest/bin:$PATH
+          yes | sdkmanager --licenses
+          sdkmanager "build-tools;36.0.0" "platforms;android-33"
 
-      - name: Build APK with Buildozer Docker (no artifact)
+      - name: Build APK with Buildozer Docker
         run: |
           docker run --rm \
             -v "${{ github.workspace }}:/home/user/hostcwd" \

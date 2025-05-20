@@ -48,6 +48,7 @@ jobs:
             libstdc++6 \
             zlib1g-dev
           sudo apt-get install -y libncurses5 || sudo apt-get install -y libncurses5-dev || true
+          dpkg -l | grep ncurses
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
@@ -60,6 +61,11 @@ jobs:
             "platforms;android-34" \
             "build-tools;34.0.0" \
             "cmdline-tools;latest"
+          sdkmanager --list
+
+      # This step ensures the directory exists in case Buildozer expects it
+      - name: Ensure Buildozer directories exist
+        run: mkdir -p .buildozer/android/platform/python-for-android
 
       - name: Clean previous builds
         run: buildozer android clean

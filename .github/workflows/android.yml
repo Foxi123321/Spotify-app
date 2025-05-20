@@ -1,35 +1,55 @@
-name: Build Android APK with Buildozer Docker
+name: Build Android APK
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Docker Buildozer environment and build APK
-        run: |
-          # Make sure current user owns all files for mounting
-          sudo chown -R $USER:$USER ${{ github.workspace }}
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-          docker run --rm \
-            -u $(id -u):$(id -g) \
-            -v ${{ github.workspace }}:/home/buildozer/app \
-            pycontribs/buildozer \
-            android debug
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            openjdk-11-jdk \
+            python3-pip \
+            build-essential \
+            libssl-dev \
+            zlib1g-dev \
+            libffi-dev \
+            libsqlite3-dev \
+            curl \
+            git \
+            libncurses5 \
+            libncurses5-dev \
+            liblzma-dev \
+            libbz2-dev \
+            pkg-config
+
+          pip3 install --upgrade pip
+          pip3 install buildozer cython
+
+      - name: Build APK with Buildozer
+        run: |
+          buildozer android clean
+          buildozer android debug
 
       - name: List build output files for debugging
         run: ls -l ${{ github.workspace }}/bin/
 
-      - name: Upload APK (if generated)
-        uses: actions/upload-artifact@v3
-        with:
-          name: SpotifyLikedPlaylist.apk
-          path: bin/*.apk
+#      - name: Upload APK (skipped to avoid errors)
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: SpotifyLikedPlaylist.apk
+#          path: bin/*.apk

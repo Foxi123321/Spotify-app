@@ -75,7 +75,7 @@ jobs:
         run: buildozer android clean
 
       - name: Build APK with Buildozer
-        run: buildozer --log-level 2 android debug
+        run: buildozer -v android debug
 
       - name: Find built APK
         id: find_apk

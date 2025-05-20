@@ -10,25 +10,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Set up Docker Buildozer Environment
-        run: |
-          docker pull kivy/buildozer:latest || true
+      - uses: actions/checkout@v3
 
       - name: Fix permissions
         run: sudo chmod -R a+rw ${{ github.workspace }}
 
-      - name: Build APK with Buildozer Docker
+      - name: Build APK with Buildozer Docker (GHCR mirror)
         run: |
           docker run --rm \
             -u $(id -u):$(id -g) \
             -v ${{ github.workspace }}:/home/buildozer/app \
             -w /home/buildozer/app \
-            kivy/buildozer:latest \
+            ghcr.io/kivy/buildozer \
             buildozer android debug
 
-      - name: Show build output folder
+      - name: List output files
         run: ls -R bin/
-

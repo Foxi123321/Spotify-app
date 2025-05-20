@@ -12,7 +12,8 @@ jobs:
     timeout-minutes: 60
 
     env:
-      JAVA_HOME: /usr/lib/jvm/java-17-openjdk
+      # Robust JAVA_HOME path for Ubuntu runners
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
 
     steps:
       - name: Checkout repository
@@ -42,10 +43,15 @@ jobs:
             ccache \
             libstdc++6 \
             zlib1g-dev \
-            libncurses5 || sudo apt-get install -y libncurses5-dev || true
+            libncurses5-dev
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+
+      - name: Verify JAVA_HOME and Java version
+        run: |
+          echo "JAVA_HOME = $JAVA_HOME"
+          java -version
 
       - name: Accept SDK licenses and install required components
         run: |
@@ -57,6 +63,14 @@ jobs:
             "cmdline-tools;latest"
           sdkmanager --list
 
+      - name: Ensure ANDROID_HOME is set
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          if [ -z "$ANDROID_HOME" ]; then
+            echo "ANDROID_HOME not set!"
+            exit 1
+          fi
+
       - name: Verify Aidl installation
         run: |
           if [ ! -f "$ANDROID_HOME/build-tools/34.0.0/aidl" ]; then
@@ -65,7 +79,7 @@ jobs:
           fi
 
       - name: Clean previous builds
-        run: buildozer android clean
+        run: buildozer android clean || true
 
       - name: Build APK with Buildozer
         run: buildozer -v android debug

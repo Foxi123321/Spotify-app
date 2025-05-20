@@ -1,26 +1,28 @@
-name: Android CI
+name: Build Android APK with Docker
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: set up JDK 11
-      uses: actions/setup-java@v4
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-        cache: gradle
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-    - name: Build with Gradle
-      run: ./gradlew build
+      - name: Build APK using Docker container
+        run: |
+          docker build -t buildozer-android .
+          docker run --rm -v ${{ github.workspace }}:/home/buildozer/app buildozer-android
+
+      - name: List APK files
+        run: ls -R bin/
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: SpotifyLikedPlaylist-apk
+          path: bin/*.apk

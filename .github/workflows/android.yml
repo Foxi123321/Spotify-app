@@ -23,7 +23,7 @@ jobs:
             -v ${{ github.workspace }}:/home/buildozer/app \
             -w /home/buildozer/app \
             ghcr.io/kivy/buildozer \
-            buildozer android debug
+            android debug
 
       - name: List generated APK
         run: ls -l bin/

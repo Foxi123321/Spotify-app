@@ -1,7 +1,7 @@
 # Spotify Liked Songs to Playlist App
 
 ## How to Use (on Android with Termux)
-1. Open Termux and run:
+1. Open Termux and run: 
 
    pkg update && pkg upgrade
    pkg install python git zip unzip clang libffi openssl freetype libpng libjpeg-turbo

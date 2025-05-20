@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up Python 3.11
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
@@ -33,6 +33,7 @@ jobs:
             git \
             libncurses5 \
             libncurses5-dev \
+            libffi-dev \
             liblzma-dev \
             libbz2-dev \
             pkg-config
@@ -42,14 +43,14 @@ jobs:
 
       - name: Build APK with Buildozer
         run: |
-          buildozer android clean
-          buildozer android debug
+          buildozer android debug --verbose
 
-      - name: List build output files for debugging
-        run: ls -l ${{ github.workspace }}/bin/
+      - name: Debug APK directory
+        run: ls -R bin/
 
-#      - name: Upload APK (skipped to avoid errors)
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: SpotifyLikedPlaylist.apk
-#          path: bin/*.apk
+      # Note: artifact upload is optional and can be removed if not needed
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: SpotifyLikedPlaylist.apk
+          path: bin/*.apk

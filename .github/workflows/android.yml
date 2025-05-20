@@ -1,4 +1,4 @@
-name: Android Build
+name: Build APK
 
 on:
   push:
@@ -6,24 +6,17 @@ on:
       - main
 
 jobs:
-  build-android:
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Fix permissions for Docker user
-        run: sudo chown -R 1000:1000 ${{ github.workspace }}
-
-      - name: Build APK with Buildozer Docker
+      - name: Build APK with Buildozer Docker (no artifact)
         run: |
           docker run --rm \
-            -u 1000:1000 \
-            -v ${{ github.workspace }}:/home/buildozer/app \
-            -w /home/buildozer/app \
-            ghcr.io/kivy/buildozer \
-            android debug
-
-      - name: List generated APK
-        run: ls -l bin/
+            -v "${{ github.workspace }}:/home/user/hostcwd" \
+            -w /home/user/hostcwd \
+            ghcr.io/kivy/buildozer:latest \
+            bash -c "yes | sdkmanager --licenses && buildozer android debug"

@@ -13,20 +13,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Fix workspace permissions for Docker user
+      - name: Set permissions for workspace
         run: sudo chown -R 1000:1000 ${{ github.workspace }}
 
-      - name: Run Buildozer Docker container to build APK
+      - name: Build APK with Buildozer Docker
         run: |
           docker run --rm \
             -v ${{ github.workspace }}:/home/buildozer/app \
             buildozer-android
 
-      - name: List build output directory
+      - name: List APK output folder
         run: ls -R ${{ github.workspace }}/bin/
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: SpotifyLikedPlaylist.apk
-          path: bin/*.apk

@@ -1,22 +1,23 @@
-name: Build APK
+name: build-apk
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Build APK using Buildozer in Docker
+      - name: Set up Docker container and build APK
         run: |
           docker run --rm \
             -v ${{ github.workspace }}:/home/user/app \
             -w /home/user/app \
-            ghcr.io/kivy/buildozer:latest \
-            bash -c "pip install buildozer && buildozer android debug"
+            ghcr.io/kivy/buildozer \
+            buildozer android debug

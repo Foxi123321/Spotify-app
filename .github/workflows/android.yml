@@ -1,44 +1,88 @@
 name: Build Android APK
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
+      - master
+  pull_request:
 
 jobs:
-  build:
+  build-android-apk:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    env:
+      # Set JAVA_HOME for Android builds
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-    - name: Set up Android SDK
-      uses: android-actions/setup-android@v2
-      with:
-        api-level: 33
-        build-tools: 33.0.0
-        components: |
-          platform-tools
-          build-tools;33.0.0
-          platform;android-33
+      - name: Upgrade pip and install Buildozer (if using Kivy)
+        run: |
+          python -m pip install --upgrade pip
+          pip install buildozer cython
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y openjdk-11-jdk python3-pip build-essential \
-          libssl-dev zlib1g-dev libffi-dev libsqlite3-dev curl git \
-          libncurses5-dev liblzma-dev libbz2-dev pkg-config unzip
-        pip3 install --upgrade pip
-        pip3 install buildozer cython
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            openjdk-17-jdk \
+            unzip \
+            python3-setuptools \
+            python3-pip \
+            python3-wheel \
+            git \
+            zip \
+            ccache \
+            libncurses5 \
+            libstdc++6 \
+            zlib1g-dev
 
-    - name: Build APK
-      run: buildozer android debug
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
 
-    - name: List APK(s)
-      run: ls -R bin/
+      - name: Accept SDK licenses and install required components
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager --install \
+            "platform-tools" \
+            "platforms;android-34" \
+            "build-tools;34.0.0" \
+            "cmdline-tools;latest"
+
+      # Uncomment the following block if using Gradle (for pure Android/Kotlin/Java projects)
+      # - name: Build with Gradle
+      #   run: ./gradlew assembleDebug
+
+      # Uncomment and adjust the following block if using Buildozer (for Kivy/Python projects)
+      - name: Clean previous builds
+        run: buildozer android clean
+
+      - name: Build APK with Buildozer
+        run: buildozer android debug
+
+      - name: Find built APK
+        id: find_apk
+        run: |
+          APK_PATH=$(find . -name "*.apk" | grep -m 1 "/bin/" || true)
+          echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug.apk
+          path: ${{ steps.find_apk.outputs.apk_path }}
+
+      - name: Post-job cleanup
+        if: always()
+        run: |
+          echo "Cleanup complete."

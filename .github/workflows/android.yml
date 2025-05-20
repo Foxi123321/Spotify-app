@@ -1,4 +1,4 @@
-name: Build Android APK with Docker
+name: Build Android APK with Docker and Release
 
 on:
   push:
@@ -27,8 +27,15 @@ jobs:
       - name: List APK files
         run: ls -R bin/
 
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: SpotifyLikedPlaylist-apk
-          path: bin/*.apk
+      - name: Compress APK
+        run: zip -r app-release.zip bin/
+
+      - name: Create GitHub Release and upload APK
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v$(date +'%Y%m%d%H%M%S')"
+          gh release create "$TAG" app-release.zip --title "$TAG" --notes "Automated APK build"
+
+      - name: Show Release URL
+        run: gh release view --json url -q .url

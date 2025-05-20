@@ -1,4 +1,4 @@
-name: Build Android APK with Docker and Release
+name: Build Android APK
 
 on:
   push:
@@ -10,34 +10,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+      - name: Fix workspace permissions for Docker user
+        run: sudo chown -R 1000:1000 ${{ github.workspace }}
 
-      - name: Build Docker image
+      - name: Run Buildozer Docker container to build APK
         run: |
-          docker build -t buildozer-android .
+          docker run --rm \
+            -v ${{ github.workspace }}:/home/buildozer/app \
+            buildozer-android
 
-      - name: Fix workspace permissions
-        run: sudo chmod -R a+rw ${{ github.workspace }}
+      - name: List build output directory
+        run: ls -R ${{ github.workspace }}/bin/
 
-      - name: Run Docker container to build APK
-        run: docker run --rm -u 0 -v ${{ github.workspace }}:/home/buildozer/app buildozer-android
-
-      - name: List APK files
-        run: ls -R bin/
-
-      - name: Compress APK
-        run: zip -r app-release.zip bin/
-
-      - name: Create GitHub Release and upload APK
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="v$(date +'%Y%m%d%H%M%S')"
-          gh release create "$TAG" app-release.zip --title "$TAG" --notes "Automated APK build"
-
-      - name: Show Release URL
-        run: gh release view --json url -q .url
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: SpotifyLikedPlaylist.apk
+          path: bin/*.apk

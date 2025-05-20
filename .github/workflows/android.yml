@@ -1,9 +1,10 @@
-name: Build Android APK
+name: Build Android APK with Buildozer Docker
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,13 +14,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Build APK with Buildozer Docker (non-root)
+      - name: Set up Docker Buildozer environment and build APK
         run: |
+          # Make sure current user owns all files for mounting
+          sudo chown -R $USER:$USER ${{ github.workspace }}
+
           docker run --rm \
             -u $(id -u):$(id -g) \
             -v ${{ github.workspace }}:/home/buildozer/app \
-            kivy/buildozer \
+            pycontribs/buildozer \
             android debug
 
-      - name: List APK files for debugging
-        run: ls -l bin/
+      - name: List build output files for debugging
+        run: ls -l ${{ github.workspace }}/bin/
+
+      - name: Upload APK (if generated)
+        uses: actions/upload-artifact@v3
+        with:
+          name: SpotifyLikedPlaylist.apk
+          path: bin/*.apk

@@ -14,13 +14,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up permissions
-        run: |
-          sudo chown -R $USER:$USER .
+      - name: Get current user UID
+        id: get_uid
+        run: echo "uid=$(id -u)" >> $GITHUB_OUTPUT
 
-      - name: Build APK using Buildozer Docker
+      - name: Build APK with Buildozer Docker
         run: |
           docker run --rm \
+            --user ${{ steps.get_uid.outputs.uid }} \
             -v "${{ github.workspace }}:/home/user/app" \
             -w /home/user/app \
             ghcr.io/kivy/buildozer:latest \
